@@ -1,0 +1,22 @@
+{%extends 'base.html'%}
+{%block title%}Libro {{ libro.titulo }}{%endblock title%}
+{%block content%}
+<h3>Detalle del Libro</h3>
+{% if messages %}
+            <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}   
+<p>{{ libro }}</p>     
+<h4>Datos del Libro</h4>
+<p><b>Titulo:</b> {{ libro.titulo }}</p>
+<p><b>Autor:</b> {{ libro.autor }}</p>
+<p><b>Año_publicacion:</b> {{ libro.año_publicacion|date:"d/m/Y" }}</p>
+<p>
+    <a href="{% url 'libros:editar_libro' libro.id %}"><button>Editar</button></a>
+    <a href="{% url 'libros:eliminar_libro' libro.id %}"><button>Eliminar</button></a>
+    <a href="{% url 'libros:listar_libros' %}"><button>Libros</button></a>
+</p>
+{%endblock%}

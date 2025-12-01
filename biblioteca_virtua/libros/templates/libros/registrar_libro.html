@@ -1,0 +1,23 @@
+{% extends 'base.html'%}
+{%block title%}Registro Libro{%endblock title%}
+
+{%block content%} 
+<h3>Registro de Nuevo Libro</h3>
+<form method='post' action="{% url 'libros:registrar_libro'%}">
+    {% csrf_token %}
+    <p>
+        {{form.titulo.label_tag}}
+        {{form.titulo}}
+    </p>
+        <p>
+        {{form.autor.label_tag}}
+        {{form.autor}}
+    </p>
+        <p>
+        {{form.año_publicacion.label_tag}}
+        {{form.año_publicacion}}
+    </p>
+    <input type='submit' value='Registrar'/>
+</form>
+<a href="{% url 'libros:listar_libros' %}"><button>Volver</button></a>
+{%endblock%}

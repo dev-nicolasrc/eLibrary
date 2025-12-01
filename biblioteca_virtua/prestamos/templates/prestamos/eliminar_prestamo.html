@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Eliminar Prestamo{% endblock title%}
+{% block content %}
+<h3>¿Estas seguro de eliminar el prestamo "{{prestamo}}"?</h3>
+<form method='POST' action="{% url 'prestamos:eliminar_prestamo' prestamo.id %}">
+{% csrf_token %}
+<button type='submit'>Eliminar</button>
+</form>
+<a href="{% url 'prestamos:detalle_prestamo' prestamo.id %}"><button>Cancelar</button></a>
+{% endblock %}

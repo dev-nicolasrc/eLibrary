@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Libros{%endblock title%}
+{% block content %} 
+<h4>Lista de Libros</h4>
+<a href="{% url 'libros:registrar_libro' %}"><button>Registrar Libro</button></a>
+<br><br>
+<table border="1">
+    <tr>
+        <th>Titulo</th>
+        <th>Autor</th>
+        <th>Año publicacion</th>
+        <th colspan="3">Acciones</th>
+    </tr>
+    {% for libro in libros %}
+    <tr>
+        <td>{{libro.titulo}}</td>
+        <td>{{libro.autor}}</td>
+        <td>{{libro.año_publicacion}}</td>
+        <td><a href="{% url 'libros:detalle_libro' libro.id %}" style='color: gray' >Detalle</a></td>
+        <td><a href="{% url 'libros:editar_libro' libro.id %}">Editar</a></td>
+        <td><a href="{% url 'libros:eliminar_libro' libro.id %}" style='color: red' >Eliminar</a></td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="6">No hay libros registrados</td>
+    </tr>
+    {% endfor %}
+
+</table>
+<br>
+<a href="{% url 'inicio' %}"><button>Volver</button></a>
+{% endblock %}

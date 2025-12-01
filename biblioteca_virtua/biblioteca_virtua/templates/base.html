@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Biblioteca Virtual{% endblock title %}</title>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <h1>Biblioteca Virtual</h1>
+            <ul>
+                <li><a href="{% url 'inicio' %}">Inicio</a></li>
+                <li><a href="{% url 'libros:listar_libros'%}">Libros</a></li>
+                <li><a href="{% url 'prestamos:listar_prestamos'%}">Prestamos</a></li>
+                <li><a href="{% url 'usuarios:registrar_usuario' %}">Registrarse</a></li>
+            </ul>
+        </nav>
+        <hr>
+    </header>
+
+    <main>
+        {% block content %}
+        <!-- El contenido específico de cada página se insertará aquí -->
+        {% endblock content %}
+    </main>
+    <footer>
+        <hr>
+        <p>&copy; 2023 Biblioteca Virtual. Todos los derechos reservados.</p>
+    </footer>
+    {% comment %} Aquí puedes añadir enlaces a tus archivos JavaScript {% endcomment %}
+    {% comment %}
+    <script src="/static/js/script.js"></script> {% endcomment %}
+</body>
+
+</html>

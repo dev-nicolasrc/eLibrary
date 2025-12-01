@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Editar {{libro.titulo}} {% endblock title %}
+{% block content %}
+<h3>Editar Libro "{{libro.titulo}}"</h3>
+<form method='post' action="{% url 'libros:editar_libro' libro.id %}">
+    {% csrf_token %}
+    <p>
+        {{form.titulo.label_tag}}
+        {{form.titulo}}
+    </p>
+        <p>
+        {{form.autor.label_tag}}
+        {{form.autor}}
+    </p>
+        <p>
+        {{form.año_publicacion.label_tag}}
+        {{form.año_publicacion}}
+    </p>
+    <input type='submit' value='Editar'/>
+</form>
+<a href="{% url 'libros:detalle_libro' libro.id %}"><button>Cancelar</button></a>
+{% endblock %}

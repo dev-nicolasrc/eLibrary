@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Devolucion{% endblock title %}
+{% block content %}
+<h3>¿Estas seguro de registrar la devolucion del libro "{{ prestamo.libro}}"?</h3>
+<form method='POST' action="{% url 'prestamos:registrar_devolucion' prestamo.id %}">
+{% csrf_token %}
+<button typr='submit'>Devolver</button>
+</form>
+<a href="{% url 'prestamos:detalle_prestamo' prestamo.id %}"><button>Cancelar</button></a>
+{% endblock %}

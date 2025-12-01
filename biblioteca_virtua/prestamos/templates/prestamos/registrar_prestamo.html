@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Registro Prestamo{% endblock title%}
+{% block content %}
+<h3>Registro de Nuevo Prestamo</h3>
+<form method='post' action="{% url 'prestamos:registrar_prestamo'%}">
+    {% csrf_token %}
+    <p>
+        {{form.usuario.label_tag}}
+        {{form.usuario}}
+    </p>
+    <p>
+        {{form.libro.label_tag}}
+        {{form.libro}}
+    </p>
+    <input type='submit' value='Prestar'/>
+</form>
+<a href="{% url 'prestamos:listar_prestamos' %}"><button>Cancelar</button></a>
+{% endblock %}

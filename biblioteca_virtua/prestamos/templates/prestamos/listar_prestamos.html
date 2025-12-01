@@ -1,0 +1,42 @@
+{% extends 'base.html'%}
+{% block title %}Prestamos{% endblock title%}
+{% block content %}
+<h4>Lista de Prestamos</h4>
+<a href="{% url 'prestamos:registrar_prestamo' %}"><button>Registrar Prestamo</button></a>
+<br><br>
+<table border="1">
+    <tr>
+        <th>Usuario</th>
+        <th>Libro</th>
+        <th>Fecha Prestamo</th>
+        <th>Fecha Devolucion</th>
+        <th colspan="3">Acciones</th>
+        <th>Devolver</th>
+    </tr>
+    {% for prestamo in prestamos %}
+    <tr>
+        <td>{{prestamo.usuario}}</td>
+        <td>{{prestamo.libro}}</td>
+        <td>{{prestamo.fecha_prestamo|date:"d/m/Y h:i a"}}</td>
+        <td>{{prestamo.fecha_devolucion|date:"d/m/Y h:i a"|default:"No devuelto"}}</td>
+        <td><a href="{% url 'prestamos:detalle_prestamo' prestamo.id %}" style='color: gray'>Detalle</a></td>
+        <td><a href="{% url 'prestamos:editar_prestamo' prestamo.id %}" style='color: blue' >Editar</a></td>
+        <td><a href="{% url 'prestamos:eliminar_prestamo' prestamo.id %}" style='color: red'>Eliminar</a></td>
+        
+        {% if not prestamo.fecha_devolucion %}
+            <td><a href="{% url 'prestamos:registrar_devolucion' prestamo.id %}" style='color: orange'>Devolver</a></td>
+        {% else %}
+            <td style='color:green' >Devuelto</td>
+        
+            {% endif %}
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="8">No hay prestamos registrados</td>
+    </tr>
+    {% endfor %}
+
+</table>
+<br>
+<a href="{% url 'inicio' %}"><button>Volver</button></a>
+{% endblock %}

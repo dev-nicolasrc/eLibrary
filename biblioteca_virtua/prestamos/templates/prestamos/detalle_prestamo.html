@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Detalle Prestamo{% endblock title %}
+{% block content %}
+<h3>Detalle del Prestamo</h3>
+{% if messages %}
+            <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}   
+<p>{{prestamo}}</p>
+<h4>Datos del Prestamo</h4>
+<p><b>Usuario:</b> {{ prestamo.usuario.nombre }}</p>
+<p><b>Correo:</b> {{ prestamo.usuario.correo }}</p>
+<p><b>Libro:</b> <a href="{% url 'libros:detalle_libro' prestamo.libro.id %}"> {{ prestamo.libro.titulo }}</a></p>
+<p><b>fecha del Prestamo:</b> {{ prestamo.fecha_prestamo|date:"d/m/Y h:i a"}}</p>
+<p><b>fecha de la Devolucion:</b> {{ prestamo.fecha_devolucion|date:"d/m/Y h:i a"|default:"No devuelto"}}</p>
+
+<p>
+    <a href="{% url 'prestamos:editar_prestamo' prestamo.id %}"><button>Editar</button></a>
+    <a href="{% url 'prestamos:eliminar_prestamo' prestamo.id %}"><button>Eliminar</button></a>
+    <a href="{% url 'prestamos:registrar_devolucion' prestamo.id %}"><button>Devolución</button></a>
+    <a href="{% url 'prestamos:listar_prestamos' %}"><button>Prestamos</button></a>
+</p>
+{% endblock %}

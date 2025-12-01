@@ -1,0 +1,23 @@
+services:
+  jenkins:
+    build: .
+    image: jenkins/jenkins:2.528.2-lts-jdk21
+    container_name: jenkins-ci
+    restart: unless-stopped
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - TZ=America/Bogota
+    networks:
+      - jenkins
+
+networks:
+  jenkins:
+
+volumes:
+  jenkins_home:

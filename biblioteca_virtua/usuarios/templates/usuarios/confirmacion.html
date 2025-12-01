@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Confirmación Usuario - Biblioteca Virtual{% endblock %}
+{% block content %}
+<h4>¡Registro Exitoso!</h4>
+<p>El usuario ha sido registrado correctamente en el sistema.</p>
+<h4>Datos del Usuario Registrado</h4>
+<p><b>Nombre:</b> {{ usuario.nombre }}</p>
+<p><b>Correo:</b> {{ usuario.correo }}</p>
+<p><b>Edad:</b> {{ usuario.edad }} años</p>
+<p><b>Fecha de registro:</b> {{ usuario.fecha_registro|date:"d/m/Y h:i a" }}</p>
+<p><a href="{% url 'usuarios:registrar_usuario' %}"><button>Registrar otro usuario</button></a></p>
+{% endblock %}
