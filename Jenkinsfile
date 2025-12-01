@@ -12,11 +12,9 @@ pipeline {
     }
 
     environment {
-        // Usa el que tengas instalado en el host de Jenkins:
-        // Para Docker Compose plugin nuevo:
+        // Intenta usar docker compose, si no funciona usa fallback
         DOCKER_COMPOSE_CMD = 'docker compose'
-        // Si usas el binario viejo: 'docker-compose'
-        // DOCKER_COMPOSE_CMD = 'docker-compose'
+        DOCKERHOST_CMD = 'docker'
     }
 
     stages {
@@ -27,27 +25,33 @@ pipeline {
                 echo "Clonando repositorio..."
                 git branch: 'main',
                     url: 'https://github.com/dev-nicolasrc/eLibrary.git'
+                
+                echo "✅ Repositorio clonado exitosamente"
             }
         }
 
         stage('Build imagen Django') {
             steps {
+                echo "🐳 Intentando construir imagen Docker..."
                 script {
-                    try {
+                    def dockerAvailable = sh(
+                        script: 'which docker > /dev/null 2>&1',
+                        returnStatus: true
+                    )
+                    
+                    if (dockerAvailable == 0) {
+                        echo "✅ Docker disponible. Construyendo imagen..."
                         sh '''
-                            # Limpiar por si quedó algo de un build anterior
                             ${DOCKER_COMPOSE_CMD} down -v || true
-
-                            echo "Construyendo la imagen del servicio web..."
                             ${DOCKER_COMPOSE_CMD} build --no-cache web
                         '''
-                    } catch (Exception e) {
-                        echo "⚠️ Docker no disponible. Intentando build local..."
+                    } else {
+                        echo "⚠️ Docker no disponible en Jenkins"
+                        echo "💡 Ejecutar builds localmente o configurar Docker en Jenkins"
                         sh '''
-                            cd biblioteca_virtua
-                            echo "🔍 Verificando dependencias..."
-                            python --version || echo "Python no instalado"
-                            pip list || echo "pip no disponible"
+                            echo "Para ejecutar localmente:"
+                            echo "cd biblioteca_virtua"
+                            echo "docker build -t django-app ."
                         '''
                     }
                 }
@@ -55,6 +59,9 @@ pipeline {
         }
 
         stage('Levantar MySQL') {
+            when {
+                expression { sh(script: 'which docker > /dev/null 2>&1', returnStatus: true) == 0 }
+            }
             steps {
                 sh '''
                     echo "Levantando solo el servicio de base de datos..."
@@ -67,6 +74,9 @@ pipeline {
         }
 
         stage('Migraciones') {
+            when {
+                expression { sh(script: 'which docker > /dev/null 2>&1', returnStatus: true) == 0 }
+            }
             steps {
                 sh '''
                     echo "Esperando a que la base de datos esté lista..."
@@ -79,6 +89,9 @@ pipeline {
         }
 
         stage('Pruebas Unitarias') {
+            when {
+                expression { sh(script: 'which docker > /dev/null 2>&1', returnStatus: true) == 0 }
+            }
             steps {
                 sh '''
                     echo "🧪 Ejecutando pruebas unitarias con mocks (usando SQLite en memoria)..."
@@ -92,6 +105,9 @@ pipeline {
         }
         
         stage('Reporte de Cobertura') {
+            when {
+                expression { sh(script: 'which docker > /dev/null 2>&1', returnStatus: true) == 0 }
+            }
             steps {
                 echo "📊 Iniciando generación de reporte de cobertura..."
                 
@@ -170,6 +186,9 @@ pipeline {
         }
 
         stage('Deploy') {
+            when {
+                expression { sh(script: 'which docker > /dev/null 2>&1', returnStatus: true) == 0 }
+            }
             steps {
                 sh '''
                     echo "Desplegando aplicación..."
