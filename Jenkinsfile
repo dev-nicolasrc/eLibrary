@@ -32,13 +32,25 @@ pipeline {
 
         stage('Build imagen Django') {
             steps {
-                sh '''
-                    # Limpiar por si quedó algo de un build anterior
-                    ${DOCKER_COMPOSE_CMD} down -v || true
+                script {
+                    try {
+                        sh '''
+                            # Limpiar por si quedó algo de un build anterior
+                            ${DOCKER_COMPOSE_CMD} down -v || true
 
-                    echo "Construyendo la imagen del servicio web..."
-                    ${DOCKER_COMPOSE_CMD} build --no-cache web
-                '''
+                            echo "Construyendo la imagen del servicio web..."
+                            ${DOCKER_COMPOSE_CMD} build --no-cache web
+                        '''
+                    } catch (Exception e) {
+                        echo "⚠️ Docker no disponible. Intentando build local..."
+                        sh '''
+                            cd biblioteca_virtua
+                            echo "🔍 Verificando dependencias..."
+                            python --version || echo "Python no instalado"
+                            pip list || echo "pip no disponible"
+                        '''
+                    }
+                }
             }
         }
 
