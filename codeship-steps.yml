@@ -1,0 +1,63 @@
+- name: Verificar Salud
+  service: codeship_app
+  command: echo "🚀 Pipeline de Codeship iniciado"
+
+- name: Instalar Dependencias
+  service: codeship_app
+  command: |
+    echo "📦 Instalando dependencias..."
+    cd /app/biblioteca_virtua
+    pip install --upgrade pip
+    pip install -r requirements.txt
+    echo "✅ Dependencias instaladas"
+
+- name: Esperar BD
+  service: codeship_app
+  command: |
+    echo "⏳ Esperando a que MySQL esté listo..."
+    for i in {60..0}; do
+      if python -c "import MySQLdb; MySQLdb.connect(host='codeship_db', user='usuario', passwd='usuario123', db='biblioteca')" > /dev/null 2>&1; then
+        echo "✅ MySQL está listo"
+        break
+      fi
+      echo "  Intento $((60-i))/60..."
+      sleep 1
+    done
+    if [ "$i" = 0 ]; then
+      echo "❌ MySQL no respondió"
+      exit 1
+    fi
+
+- name: Migraciones
+  service: codeship_app
+  command: |
+    echo "🔄 Ejecutando migraciones..."
+    cd /app/biblioteca_virtua
+    python manage.py migrate
+    echo "✅ Migraciones completadas"
+
+- name: Pruebas Unitarias
+  service: codeship_app
+  command: |
+    echo "🧪 Ejecutando pruebas unitarias..."
+    cd /app/biblioteca_virtua
+    python run_unit_tests.py
+    echo "✅ Pruebas completadas"
+
+- name: Reporte de Cobertura
+  service: codeship_app
+  command: |
+    echo "📊 Generando reporte de cobertura..."
+    cd /app/biblioteca_virtua
+    coverage run --source=libros,usuarios,prestamos,core run_unit_tests.py
+    coverage report -m
+    coverage xml
+    echo "✅ Cobertura generada"
+
+- name: Enviar Cobertura
+  service: codeship_app
+  command: |
+    echo "📤 Enviando reporte de cobertura..."
+    pip install codecov
+    codecov || echo "⚠️  Codecov no disponible"
+    echo "✅ Reporte enviado"

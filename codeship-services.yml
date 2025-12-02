@@ -1,0 +1,26 @@
+codeship_db:
+  image: mysql:8.0
+  environment:
+    MYSQL_ROOT_PASSWORD: root123
+    MYSQL_DATABASE: biblioteca
+    MYSQL_USER: usuario
+    MYSQL_PASSWORD: usuario123
+  ports:
+    - "3306:3306"
+
+codeship_app:
+  build:
+    dockerfile: Dockerfile
+    context: ./
+  depends_on:
+    - codeship_db
+  environment:
+    - DB_HOST=codeship_db
+    - DB_NAME=biblioteca
+    - DB_USER=usuario
+    - DB_PASSWORD=usuario123
+    - PYTHONUNBUFFERED=1
+  ports:
+    - "8000:8000"
+  volumes:
+    - ./:/app

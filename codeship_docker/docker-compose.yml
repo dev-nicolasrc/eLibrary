@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  codeship_db:
+    image: mysql:8.0
+    container_name: codeship_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: biblioteca
+      MYSQL_USER: usuario
+      MYSQL_PASSWORD: usuario123
+    ports:
+      - "3306:3306"
+    volumes:
+      - codeship_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uusuario", "-pusuario123"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+    networks:
+      - codeship_network
+
+  codeship_app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: codeship_app
+    depends_on:
+      codeship_db:
+        condition: service_healthy
+    environment:
+      - DB_HOST=codeship_db
+      - DB_NAME=biblioteca
+      - DB_USER=usuario
+      - DB_PASSWORD=usuario123
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+    networks:
+      - codeship_network
+    command: |
+      sh -c "
+        echo '⏳ Esperando BD...' &&
+        python -c "
+        import time, MySQLdb, sys
+        for i in range(60):
+          try:
+            MySQLdb.connect(host='codeship_db', user='usuario', passwd='usuario123', db='biblioteca')
+            print('✅ BD lista')
+            sys.exit(0)
+          except:
+            print(f'Intento {i+1}/60...')
+            time.sleep(1)
+        sys.exit(1)
+        " &&
+        echo '🔄 Ejecutando migraciones...' &&
+        python manage.py migrate &&
+        echo '✅ Migraciones completadas' &&
+        python manage.py runserver 0.0.0.0:8000
+      "
+
+networks:
+  codeship_network:
+    driver: bridge
+
+volumes:
+  codeship_mysql_data:
