@@ -209,7 +209,18 @@ pipeline {
         }
         failure {
             echo "❌ Pipeline falló. Ejecutando cleanup..."
-            sh '${DOCKER_COMPOSE_CMD} down -v || true'
+            sh '''
+                echo "Limpiando contenedores..."
+                ${DOCKER_COMPOSE_CMD} down -v 2>/dev/null || true
+                echo "Cleanup completado"
+            '''
+        }
+        always {
+            echo "🔍 Estado final del pipeline"
+            sh '''
+                echo "Contenedores activos:"
+                ${DOCKER_COMPOSE_CMD} ps 2>/dev/null || echo "Docker no disponible"
+            '''
         }
     }
 }

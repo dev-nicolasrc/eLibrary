@@ -1,0 +1,144 @@
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        timeout(time: 30, unit: 'MINUTES')
+    }
+
+    environment {
+        DOCKER_COMPOSE_CMD = 'docker compose'
+        PROJECT_NAME = 'ci-cd_elibrary'
+    }
+
+    stages {
+        stage('Info') {
+            steps {
+                echo "📋 Información del sistema:"
+                sh '''
+                    echo "=== Docker ==="
+                    which docker && docker --version || echo "❌ Docker no encontrado"
+                    
+                    echo "=== Docker Compose ==="
+                    which docker-compose || which docker && docker compose version || echo "❌ Docker Compose no encontrado"
+                    
+                    echo "=== Git ==="
+                    git --version
+                    
+                    echo "=== PWD ==="
+                    pwd
+                '''
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                echo "📥 Clonando repositorio..."
+                deleteDir()
+                git branch: 'main',
+                    url: 'https://github.com/dev-nicolasrc/eLibrary.git'
+                
+                echo "✅ Repositorio clonado"
+                sh 'ls -la'
+            }
+        }
+
+        stage('Verificar archivos') {
+            steps {
+                echo "📂 Verificando estructura de proyecto:"
+                sh '''
+                    echo "=== Raíz ==="
+                    ls -la
+                    
+                    echo "=== biblioteca_virtua ==="
+                    ls -la biblioteca_virtua/ || echo "No existe"
+                    
+                    echo "=== docker-compose.yml ==="
+                    cat docker-compose.yml
+                '''
+            }
+        }
+
+        stage('Build imagen') {
+            steps {
+                echo "🔨 Construyendo imagen Django..."
+                sh '''
+                    echo "Limpiando builds anteriores..."
+                    ${DOCKER_COMPOSE_CMD} down -v 2>/dev/null || true
+                    
+                    echo "Construyendo imagen..."
+                    ${DOCKER_COMPOSE_CMD} build --no-cache web 2>&1 | head -100
+                '''
+            }
+        }
+
+        stage('Levantar DB') {
+            steps {
+                echo "🗄️ Iniciando MySQL..."
+                sh '''
+                    ${DOCKER_COMPOSE_CMD} up -d db
+                    echo "Esperando a que MySQL esté listo..."
+                    sleep 15
+                    ${DOCKER_COMPOSE_CMD} ps
+                '''
+            }
+        }
+
+        stage('Migraciones') {
+            steps {
+                echo "🔄 Ejecutando migraciones..."
+                sh '''
+                    ${DOCKER_COMPOSE_CMD} run --rm web sh -c "python manage.py migrate" 2>&1 | tail -50
+                '''
+            }
+        }
+
+        stage('Pruebas') {
+            steps {
+                echo "🧪 Ejecutando pruebas..."
+                sh '''
+                    ${DOCKER_COMPOSE_CMD} run --rm -e TESTING=1 web python run_unit_tests.py 2>&1 | tail -50
+                '''
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo "🚀 Desplegando..."
+                sh '''
+                    ${DOCKER_COMPOSE_CMD} up -d
+                    echo "Esperando inicio..."
+                    sleep 5
+                    ${DOCKER_COMPOSE_CMD} ps
+                    echo "✅ Aplicación disponible en http://localhost:8000"
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "🧹 Limpiando..."
+            sh '''
+                echo "Estado de contenedores:"
+                ${DOCKER_COMPOSE_CMD} ps 2>/dev/null || echo "Docker no disponible"
+                
+                echo "Limpiando..."
+                ${DOCKER_COMPOSE_CMD} down -v 2>/dev/null || true
+            '''
+        }
+        failure {
+            echo "❌ Pipeline falló"
+            sh '''
+                echo "=== Logs de MySQL ==="
+                ${DOCKER_COMPOSE_CMD} logs db 2>/dev/null | tail -30 || echo "No hay logs"
+                
+                echo "=== Logs de Django ==="
+                ${DOCKER_COMPOSE_CMD} logs web 2>/dev/null | tail -30 || echo "No hay logs"
+            '''
+        }
+        success {
+            echo "✅ Pipeline exitoso"
+        }
+    }
+}
