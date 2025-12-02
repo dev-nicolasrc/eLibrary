@@ -1,0 +1,25 @@
+services:
+  travis:
+    build: .
+    image: travis-ci-local:latest
+    container_name: travis-ci
+    restart: unless-stopped
+    user: travis
+    ports:
+      - "8081:8080"
+    volumes:
+      - travis_home:/home/travis
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./../../:/home/travis/build/elibrary
+    environment:
+      - TZ=America/Bogota
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    networks:
+      - travis
+    working_dir: /home/travis/build/elibrary
+
+networks:
+  travis:
+
+volumes:
+  travis_home:
